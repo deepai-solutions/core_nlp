@@ -1,8 +1,8 @@
 
-#Core NLP algorithms for Vietnamese
+# Core NLP algorithms for Vietnamese
 
-##Modules
-##1. Tokenizer
+## Modules
+## 1. Tokenizer
 Function: Convert text into tokens
 E.g.
 
