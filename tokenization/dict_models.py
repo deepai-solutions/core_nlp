@@ -1,14 +1,7 @@
 from base_tokenizer import BaseTokenizer
-import ast
+from utils import load_n_grams
 __author__ = "Ha Cao Thanh"
 __copyright__ = "Copyright 2018, DeepAI-Solutions"
-
-
-def load_n_grams(file_path):
-    with open(file_path) as fr:
-        words = fr.read()
-        words = ast.literal_eval(words)
-    return words
 
 
 class LongMatchingTokenizer(BaseTokenizer):

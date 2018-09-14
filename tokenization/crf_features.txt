@@ -1,0 +1,5 @@
+[['tri_gram'],
+['lower', 'isupper', 'istitle', 'bi_gram'],
+['bias', 'lower', 'isupper', 'istitle', 'isdigit'],
+['lower', 'isupper', 'istitle', 'bi_gram'],
+['tri_gram']]
