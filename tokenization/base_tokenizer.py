@@ -15,6 +15,11 @@ class BaseTokenizer(object):
         pass
 
     def get_tokenized(self, text):
+        """
+        Convert sentence to tokenized sentence
+        :param text: input text
+        :return: output text
+        """
         pass
 
     @staticmethod
