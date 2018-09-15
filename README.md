@@ -1,6 +1,11 @@
 
 # Core NLP algorithms for Vietnamese
 
+### Expectation:
+We want to contribute knowledge and source codes to develop an active Vietnamese Natural Language Processing community.
+Beginners don't have to build basic code again. 
+They can use code for implementing in their system or doing research for improving performance. 
+
 ## Modules
 ## 1. Tokenizer
 Function: Convert text into tokens
