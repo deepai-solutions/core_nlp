@@ -60,9 +60,9 @@ def load_data_from_dir(data_path):
     sentences = None
     labels = None
     for f_name in file_names:
-        if f_name.startswith('.') or os.path.isdir(f_name):
-            continue
         file_path = os.path.join(data_path, f_name)
+        if f_name.startswith('.') or os.path.isdir(file_path):
+            continue
         batch_sentences, batch_labels = load_data_from_file(file_path)
         if sentences is None:
             sentences = batch_sentences

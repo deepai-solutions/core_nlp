@@ -31,11 +31,30 @@ def clean_html_file(input_path, output_path):
                 fw.write(line + "\n")
 
 
+def clean_files_from_dir(input_dir, output_dir):
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+    input_files = os.listdir(input_dir)
+    for input_file in input_files:
+        input_file_path = os.path.join(input_dir, input_file)
+        if input_file.startswith('.') or os.path.isdir(input_file_path):
+            continue
+        output_file_path = os.path.join(output_dir, input_file)
+        clean_html_file(input_file_path, output_file_path)
+
+
 def test_clean_file():
     data_path = '../data/tokenized/samples/html/html_data.txt'
     output_path = '../data/tokenized/samples/training/data.txt'
     clean_html_file(data_path, output_path)
 
 
+def test_clean_files_in_dir():
+    input_dir = '../data/tokenized/real/html'
+    output_dir = '../data/tokenized/real/training'
+    clean_files_from_dir(input_dir, output_dir)
+
+
 if __name__ == '__main__':
-    test_clean_file()
+    # test_clean_file()
+    test_clean_files_in_dir()
