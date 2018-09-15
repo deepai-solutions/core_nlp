@@ -76,7 +76,7 @@ def load_data_from_dir(data_path):
 class CrfTokenizer(BaseTokenizer):
     def __init__(self, bi_grams_path='bi_grams.txt', tri_grams_path='tri_grams.txt', features_path='crf_features.txt',
                  model_path='vi-segmentation.crfsuite',
-                 load_data_f_file=load_data_from_file):
+                 load_data_f_file=load_data_from_dir):
         """
         Initial config
         :param bi_grams_path: path to bi-grams set
@@ -282,7 +282,7 @@ def test_base():
     params = load_crf_config('crf_config.txt')
     print(params)
     sents = [["Thuế", "thu", "nhập", "cá", "nhân"]]
-    crf_tokenizer_obj = CrfTokenizer()
+    crf_tokenizer_obj = CrfTokenizer(load_data_f_file=load_data_from_file)
 
     fdict = crf_tokenizer_obj.create_syllable_features(sents[0], word_id=2)
     print(fdict)
@@ -295,7 +295,7 @@ def test_base():
 
 
 def test():
-    crf_tokenizer_obj = CrfTokenizer(load_data_f_file=load_data_from_dir)
+    crf_tokenizer_obj = CrfTokenizer()
     test_sent = "Thuế thu nhập cá nhân"
     crf_tokenizer_obj.train('../data/tokenized/samples/training')
     tokenized_sent = crf_tokenizer_obj.get_tokenized(test_sent)
