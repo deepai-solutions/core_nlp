@@ -74,19 +74,23 @@ def load_data_from_dir(data_path):
 
 
 class CrfTokenizer(BaseTokenizer):
-    def __init__(self, bi_grams_path='bi_grams.txt', tri_grams_path='tri_grams.txt', features_path='crf_features.txt',
+    def __init__(self, bi_grams_path='bi_grams.txt', tri_grams_path='tri_grams.txt',
+                 crf_config_path='crf_config.txt',
+                 features_path='crf_features.txt',
                  model_path='vi-segmentation.crfsuite',
                  load_data_f_file=load_data_from_dir):
         """
         Initial config
         :param bi_grams_path: path to bi-grams set
         :param tri_grams_path: path to tri-grams set
+        :param crf_config_path: path to crf model config file
         :param features_path: path to feature config file
         :param model_path: path to save or load model to/from file
         :param load_data_f_file: method using to load data from file to return sentences and labels
         """
         self.bi_grams = load_n_grams(bi_grams_path)
         self.tri_grams = load_n_grams(tri_grams_path)
+        self.crf_config = load_crf_config(crf_config_path)
         self.features_cfg_arr = load_crf_config(features_path)
         self.center_id = int((len(self.features_cfg_arr) - 1) / 2)
         self.function_dict = {
@@ -211,13 +215,7 @@ class CrfTokenizer(BaseTokenizer):
         for xseq, yseq in zip(X, y):
             trainer.append(xseq, yseq)
 
-        trainer.set_params({
-            'c1': 1.0,
-            'c2': 1e-3,
-            'max_iterations': 60,
-            'feature.possible_transitions': True
-        })
-
+        trainer.set_params(self.crf_config)
         trainer.train(self.model_path)
 
     def load_tagger(self):
