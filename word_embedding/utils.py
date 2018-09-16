@@ -1,4 +1,33 @@
 import os
+import urllib.request
+
+
+def clean_script(html):
+    from bs4 import BeautifulSoup
+    soup = BeautifulSoup(html)
+    for script in soup(["script", "style"]):
+        script.extract()
+    # get text
+    text = soup.get_text()
+    # break into lines and remove leading and trailing space on each
+    lines = (line.strip() for line in text.splitlines())
+    # break multi-headlines into a line each
+    chunks = (phrase.strip() for line in lines for phrase in line.split("  "))
+    # drop blank lines
+    text = '\n'.join(chunk for chunk in chunks if chunk)
+    return text
+
+
+def download_html(url_path, output_path, should_clean=True):
+    with urllib.request.urlopen(url_path) as response:
+        html = response.read()
+        if should_clean:
+            text = clean_script(html)
+        else:
+            text = html
+    with open(output_path, 'w') as fw:
+        fw.write(text)
+    return text
 
 
 def clean_html(html):
@@ -38,6 +67,12 @@ def clean_files_from_dir(input_dir, output_dir, should_tokenize=False, tokenizer
         clean_html_file(input_file_path, output_file_path, should_tokenize=should_tokenize, tokenizer=tokenizer)
 
 
+def test_download_html():
+    url_path = "https://dantri.com.vn/su-kien/anh-huong-bao-so-6-dem-nay-mot-so-tinh-dong-bac-bo-co-gio-giat-manh-20180916151250555.htm"
+    output_path = "../data/word_embedding/real/html/html_data.txt"
+    download_html(url_path, output_path)
+
+
 def test_clean_file():
     data_path = '../data/word_embedding/samples/html/html_data.txt'
     output_path = '../data/word_embedding/samples/training/data.txt'
@@ -55,5 +90,6 @@ def test_clean_files_in_dir():
 
 
 if __name__ == '__main__':
+    test_download_html()
     # test_clean_file()
-    test_clean_files_in_dir()
+    # test_clean_files_in_dir()

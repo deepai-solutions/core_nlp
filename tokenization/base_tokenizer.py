@@ -29,6 +29,7 @@ class BaseTokenizer(object):
         :param text: input sentence
         :return: list of syllables
         """
+        # TODO: Fix bug on datetime, E.g. 2013/10/20 09:20:30
         text = ud.normalize('NFC', text)
         sign = ["==>", "->", "\.\.\.", ">>"]
         digits = "\d+([\.,_]\d+)+"
