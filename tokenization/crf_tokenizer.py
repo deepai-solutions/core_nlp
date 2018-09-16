@@ -1,6 +1,6 @@
 import ast
 from base_tokenizer import BaseTokenizer
-from .utils import load_n_grams
+from utils import load_n_grams
 import pycrfsuite
 import os
 __author__ = "Cao Bot"
