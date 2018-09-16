@@ -1,5 +1,7 @@
 from gensim.models import Word2Vec
 import os
+__author__ = "Cao Bot"
+__copyright__ = "Copyright 2018, DeepAI-Solutions"
 
 
 def load_data_from_file(data_path):

@@ -36,7 +36,7 @@ Output will be an array: ['Thuế_thu_nhập', 'cá_nhân']
 
 ## 2. Word Embedding
 
-Download data from websites such as Wikipedia, Vietnamese News. You can use any method, we propose one here:
+Download data from websites such as Wikipedia, Vietnamese News. You can use any method and here we propose one for you:
 ```python
 from word_embedding.utils import download_html
 url_path = "https://dantri.com.vn/su-kien/anh-huong-bao....htm"

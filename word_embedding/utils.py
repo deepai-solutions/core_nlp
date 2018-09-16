@@ -1,5 +1,7 @@
 import os
 import urllib.request
+__author__ = "Cao Bot"
+__copyright__ = "Copyright 2018, DeepAI-Solutions"
 
 
 def clean_script(html):
