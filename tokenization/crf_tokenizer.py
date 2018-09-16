@@ -1,6 +1,6 @@
 import ast
 from base_tokenizer import BaseTokenizer
-from utils import load_n_grams
+from .utils import load_n_grams
 import pycrfsuite
 import os
 __author__ = "Cao Bot"
@@ -74,13 +74,14 @@ def load_data_from_dir(data_path):
 
 
 class CrfTokenizer(BaseTokenizer):
-    def __init__(self, bi_grams_path='bi_grams.txt', tri_grams_path='tri_grams.txt',
+    def __init__(self, config_root_path="", bi_grams_path='bi_grams.txt', tri_grams_path='tri_grams.txt',
                  crf_config_path='crf_config.txt',
                  features_path='crf_features.txt',
                  model_path='vi-segmentation.crfsuite',
                  load_data_f_file=load_data_from_dir):
         """
         Initial config
+        :param config_root_path: path to directory where you put config files such as bi_grams.txt, tri_grams.txt, ...
         :param bi_grams_path: path to bi-grams set
         :param tri_grams_path: path to tri-grams set
         :param crf_config_path: path to crf model config file
@@ -88,10 +89,10 @@ class CrfTokenizer(BaseTokenizer):
         :param model_path: path to save or load model to/from file
         :param load_data_f_file: method using to load data from file to return sentences and labels
         """
-        self.bi_grams = load_n_grams(bi_grams_path)
-        self.tri_grams = load_n_grams(tri_grams_path)
-        self.crf_config = load_crf_config(crf_config_path)
-        self.features_cfg_arr = load_crf_config(features_path)
+        self.bi_grams = load_n_grams(config_root_path + bi_grams_path)
+        self.tri_grams = load_n_grams(config_root_path + tri_grams_path)
+        self.crf_config = load_crf_config(config_root_path + crf_config_path)
+        self.features_cfg_arr = load_crf_config(config_root_path + features_path)
         self.center_id = int((len(self.features_cfg_arr) - 1) / 2)
         self.function_dict = {
             'bias': lambda word, *args: 1.0,
@@ -268,12 +269,11 @@ class CrfTokenizer(BaseTokenizer):
         prediction = self.tagger.tag(test_features)
         complete = ""
         for i, p in enumerate(prediction):
-            print(p)
             if p == "B":
                 complete += " " + sent[i]
             else:
                 complete += "_" + sent[i]
-        return complete
+        return complete.strip()
 
 
 def test_base():

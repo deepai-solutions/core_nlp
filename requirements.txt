@@ -1,3 +1,5 @@
 #python==3.6.5
 python-crfsuite==0.9.5
 #github: https://github.com/scrapinghub/python-crfsuite
+gensim==3.5.0
+#github: https://github.com/RaRe-Technologies/gensim
