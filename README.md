@@ -81,3 +81,17 @@ Other links for pre-trained models:
 https://github.com/sonvx/word2vecVN
 https://github.com/Kyubyong/wordvectors
 
+## Requirements
+Please check requirments.txt
+
+For tokenization modules:
+- python-crfsuite
+- sklearn-crfsuite (default with pre-trained model, but optional. Feel free to use python-crfsuite)
+
+For word_embedding vector:
+- gensim
+
+FYI:
+sklearn-crfsuite is a wrapper of python-crfsuite. 
+sklearn-crfsuite offers scikit-learn styled API with grid-search for hyper-parameters optimization
+
