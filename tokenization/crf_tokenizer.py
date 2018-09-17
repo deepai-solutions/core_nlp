@@ -3,8 +3,9 @@ from base_tokenizer import BaseTokenizer
 from utils import load_n_grams
 import pycrfsuite
 import sklearn_crfsuite
-import joblib
 import os
+import pickle
+import string
 __author__ = "Cao Bot"
 __copyright__ = "Copyright 2018, DeepAI-Solutions"
 
@@ -34,7 +35,7 @@ def load_data_from_file(data_path):
     :return: sentences and labels
     Examples
     sentences = [['Hello', 'World'], ['Hello', 'World']]
-    labels = [['B', 'I'], ['B', 'I']]
+    labels = [['B_W', 'I_W'], ['B_W', 'I_W']]
     """
     sentences = []
     labels = []
@@ -48,9 +49,9 @@ def load_data_from_file(data_path):
                 for i, syllable in enumerate(syllables):
                     sent.append(syllable)
                     if i == 0:
-                        sent_labels.append('B')
+                        sent_labels.append('B_W')
                     else:
-                        sent_labels.append('I')
+                        sent_labels.append('I_W')
             sentences.append(sent)
             labels.append(sent_labels)
 
@@ -100,12 +101,12 @@ class CrfTokenizer(BaseTokenizer):
         self.center_id = int((len(self.features_cfg_arr) - 1) / 2)
         self.function_dict = {
             'bias': lambda word, *args: 1.0,
-            'lower': lambda word, *args: word.lower(),
-            'isupper': lambda word, *args: word.isupper(),
-            'istitle': lambda word, *args: word.istitle(),
-            'isdigit': lambda word, *args: word.isdigit(),
-            'bi_gram': lambda word, word1, relative_id, *args: self._check_bi_gram([word, word1], relative_id),
-            'tri_gram': lambda word, word1, word2, relative_id, *args: self._check_tri_gram(
+            'word.lower()': lambda word, *args: word.lower(),
+            'word.isupper()': lambda word, *args: word.isupper(),
+            'word.istitle()': lambda word, *args: word.istitle(),
+            'word.isdigit()': lambda word, *args: word.isdigit(),
+            'word.bi_gram()': lambda word, word1, relative_id, *args: self._check_bi_gram([word, word1], relative_id),
+            'word.tri_gram()': lambda word, word1, word2, relative_id, *args: self._check_tri_gram(
                 [word, word1, word2], relative_id)
         }
         self.model_path = model_path
@@ -156,6 +157,28 @@ class CrfTokenizer(BaseTokenizer):
         for ft_cfg in features_cfg_arr:
             features_dict.update({prefix+ft_cfg: wrapper(self.function_dict[ft_cfg], word_list + [relative_id])})
         return features_dict
+
+    @staticmethod
+    def _check_special_case(word_list):
+        """
+        Check if we catch a special case
+        :param word_list: [previous_word, current_word]
+        :return: True or False
+        """
+        # Current word start with upper case but previous word NOT
+        if word_list[1].istitle() and (not word_list[0].istitle()):
+            return True
+
+        # Is a punctuation
+        for word in word_list:
+            if word in string.punctuation:
+                return True
+        # Is a digit
+        for word in word_list:
+            if word[0].isdigit():
+                return True
+
+        return False
 
     def create_syllable_features(self, text, word_id):
         """
@@ -219,14 +242,16 @@ class CrfTokenizer(BaseTokenizer):
 
         if self.base_lib == "sklearn_crfsuite":
             crf = sklearn_crfsuite.CRF(
-                algorithm='lbfgs',
-                c1=0.1,
-                c2=0.1,
-                max_iterations=100,
-                all_possible_transitions=True
+                algorithm=self.crf_config['algorithm'],
+                c1=self.crf_config['c1'],
+                c2=self.crf_config['c2'],
+                max_iterations=self.crf_config['max_iterations'],
+                all_possible_transitions=self.crf_config['all_possible_transitions']
             )
             crf.fit(X, y)
-            joblib.dump(crf, self.model_path)
+            # joblib.dump(crf, self.model_path)
+            with open(self.model_path, 'wb') as fw:
+                pickle.dump(crf, fw)
         else:
             trainer = pycrfsuite.Trainer(verbose=False)
 
@@ -243,7 +268,9 @@ class CrfTokenizer(BaseTokenizer):
         """
         print("Loading model from file {}".format(self.model_path))
         if self.base_lib == "sklearn_crfsuite":
-            self.tagger = joblib.load(self.model_path)
+            # self.tagger = joblib.load(self.model_path)
+            with open(self.model_path, 'rb') as fr:
+                self.tagger = pickle.load(fr)
         else:
             self.tagger = pycrfsuite.Tagger()
             self.tagger.open(self.model_path)
@@ -257,25 +284,27 @@ class CrfTokenizer(BaseTokenizer):
         if self.tagger is None:
             self.load_tagger()
         sent = self.syllablize(text)
+        syl_len = len(sent)
+        if syl_len <= 1:
+            return sent
         test_features = self.create_sentence_features(sent)
         if self.base_lib == "sklearn_crfsuite":
             prediction = self.tagger.predict([test_features])[0]
         else:
             prediction = self.tagger.tag(test_features)
-        syl_len = len(prediction)
         word_list = []
-        pre_word = ""
-        for i, p in enumerate(prediction):
-            if p == "B":
+        pre_word = sent[0]
+        for i, p in enumerate(prediction[1:], start=1):
+            if p == 'I_W' and not self._check_special_case(sent[i-1:i+1]):
+                pre_word += "_" + sent[i]
+                if i == (syl_len - 1):
+                    word_list.append(pre_word)
+            else:
                 if i > 0:
                     word_list.append(pre_word)
                 if i == (syl_len - 1):
                     word_list.append(sent[i])
                 pre_word = sent[i]
-            else:
-                pre_word += "_" + sent[i]
-                if i == (syl_len - 1):
-                    word_list.append(pre_word)
 
         return word_list
 
@@ -288,18 +317,20 @@ class CrfTokenizer(BaseTokenizer):
         if self.tagger is None:
             self.load_tagger()
         sent = self.syllablize(text)
+        if len(sent) <= 1:
+            return text
         test_features = self.create_sentence_features(sent)
         if self.base_lib == "sklearn_crfsuite":
             prediction = self.tagger.predict([test_features])[0]
         else:
             prediction = self.tagger.tag(test_features)
-        complete = ""
-        for i, p in enumerate(prediction):
-            if p == "B":
-                complete += " " + sent[i]
+        complete = sent[0]
+        for i, p in enumerate(prediction[1:], start=1):
+            if p == 'I_W' and not self._check_special_case(sent[i-1:i+1]):
+                complete = complete + '_' + sent[i]
             else:
-                complete += "_" + sent[i]
-        return complete.strip()
+                complete = complete + ' ' + sent[i]
+        return complete
 
 
 def test_base():
@@ -326,7 +357,6 @@ def test():
     print(tokenized_sent)
     tokens = crf_tokenizer_obj.tokenize(test_sent)
     print(tokens)
-
 
 if __name__ == '__main__':
     test()
