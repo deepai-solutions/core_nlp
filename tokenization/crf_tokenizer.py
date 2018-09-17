@@ -2,6 +2,8 @@ import ast
 from base_tokenizer import BaseTokenizer
 from utils import load_n_grams
 import pycrfsuite
+import sklearn_crfsuite
+import joblib
 import os
 __author__ = "Cao Bot"
 __copyright__ = "Copyright 2018, DeepAI-Solutions"
@@ -78,7 +80,8 @@ class CrfTokenizer(BaseTokenizer):
                  crf_config_path='crf_config.txt',
                  features_path='crf_features.txt',
                  model_path='vi-segmentation.crfsuite',
-                 load_data_f_file=load_data_from_dir):
+                 load_data_f_file=load_data_from_dir,
+                 base_lib='sklearn_crfsuite'):
         """
         Initial config
         :param config_root_path: path to directory where you put config files such as bi_grams.txt, tri_grams.txt, ...
@@ -88,6 +91,7 @@ class CrfTokenizer(BaseTokenizer):
         :param features_path: path to feature config file
         :param model_path: path to save or load model to/from file
         :param load_data_f_file: method using to load data from file to return sentences and labels
+        :param base_lib: library to use for CRF algorithm, default: sklearn_crfsuite, other choices are pycrfsuite
         """
         self.bi_grams = load_n_grams(config_root_path + bi_grams_path)
         self.tri_grams = load_n_grams(config_root_path + tri_grams_path)
@@ -107,6 +111,7 @@ class CrfTokenizer(BaseTokenizer):
         self.model_path = model_path
         self.load_data_from_file = load_data_f_file
         self.tagger = None
+        self.base_lib = base_lib
 
     def _check_bi_gram(self, a, relative_id):
         """
@@ -211,13 +216,25 @@ class CrfTokenizer(BaseTokenizer):
         """
         sentences, labels = self.load_data_from_file(data_path)
         X, y = self.prepare_training_data(sentences, labels)
-        trainer = pycrfsuite.Trainer(verbose=False)
 
-        for xseq, yseq in zip(X, y):
-            trainer.append(xseq, yseq)
+        if self.base_lib == "sklearn_crfsuite":
+            crf = sklearn_crfsuite.CRF(
+                algorithm='lbfgs',
+                c1=0.1,
+                c2=0.1,
+                max_iterations=100,
+                all_possible_transitions=True
+            )
+            crf.fit(X, y)
+            joblib.dump(crf, self.model_path)
+        else:
+            trainer = pycrfsuite.Trainer(verbose=False)
 
-        trainer.set_params(self.crf_config)
-        trainer.train(self.model_path)
+            for xseq, yseq in zip(X, y):
+                trainer.append(xseq, yseq)
+
+            trainer.set_params(self.crf_config)
+            trainer.train(self.model_path)
 
     def load_tagger(self):
         """
@@ -225,8 +242,11 @@ class CrfTokenizer(BaseTokenizer):
         :return: None
         """
         print("Loading model from file {}".format(self.model_path))
-        self.tagger = pycrfsuite.Tagger()
-        self.tagger.open(self.model_path)
+        if self.base_lib == "sklearn_crfsuite":
+            self.tagger = joblib.load(self.model_path)
+        else:
+            self.tagger = pycrfsuite.Tagger()
+            self.tagger.open(self.model_path)
 
     def tokenize(self, text):
         """
@@ -238,7 +258,10 @@ class CrfTokenizer(BaseTokenizer):
             self.load_tagger()
         sent = self.syllablize(text)
         test_features = self.create_sentence_features(sent)
-        prediction = self.tagger.tag(test_features)
+        if self.base_lib == "sklearn_crfsuite":
+            prediction = self.tagger.predict([test_features])[0]
+        else:
+            prediction = self.tagger.tag(test_features)
         syl_len = len(prediction)
         word_list = []
         pre_word = ""
@@ -266,7 +289,10 @@ class CrfTokenizer(BaseTokenizer):
             self.load_tagger()
         sent = self.syllablize(text)
         test_features = self.create_sentence_features(sent)
-        prediction = self.tagger.tag(test_features)
+        if self.base_lib == "sklearn_crfsuite":
+            prediction = self.tagger.predict([test_features])[0]
+        else:
+            prediction = self.tagger.tag(test_features)
         complete = ""
         for i, p in enumerate(prediction):
             if p == "B":
@@ -298,6 +324,8 @@ def test():
     crf_tokenizer_obj.train('../data/tokenized/samples/training')
     tokenized_sent = crf_tokenizer_obj.get_tokenized(test_sent)
     print(tokenized_sent)
+    tokens = crf_tokenizer_obj.tokenize(test_sent)
+    print(tokens)
 
 
 if __name__ == '__main__':
