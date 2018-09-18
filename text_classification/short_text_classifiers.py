@@ -46,20 +46,18 @@ class KerasTextClassifier(BaseTextClassifier):
         y = self.model.predict(X)
         return y
 
-    def classify(self, sentences):
+    def classify(self, sentences, label_dict=None):
         X = [sent.strip() for sent in sentences]
         X, _ = self.tokenize_sentences(X)
         X = self.word_embed_sentences(X, max_length=self.max_length)
         y = self.predict(np.array(X))
-        print(y)
         y = np.argmax(y, axis=1)
-        print(y)
         labels = []
         for lab_ in y:
-            if lab_ == 0:
-                labels.append('positive')
+            if label_dict is None:
+                labels.append(lab_)
             else:
-                labels.append('negative')
+                labels.append(label_dict[lab_])
         return labels
 
     def load_model(self):
@@ -80,12 +78,20 @@ class KerasTextClassifier(BaseTextClassifier):
                       metrics=['accuracy'])
         return model
 
-    def load_data(self, positive_path, negative_path):
-        positive_sentences = self.load_data_from_file(positive_path)
-        negative_sentences = self.load_data_from_file(negative_path)
-        X = positive_sentences + negative_sentences
-        y = [[1.0, 0.0] for _ in range(0, len(positive_sentences))] + \
-            [[0.0, 1.0] for _ in range(0, len(negative_sentences))]
+    def load_data(self, path_list, load_method):
+        X = None
+        y = None
+        for i, data_path in enumerate(path_list):
+            sentences_ = load_method(data_path)
+            label_vec = [0.0 for _ in range(0, self.n_class)]
+            label_vec[i] = 1.0
+            labels_ = [label_vec for _ in range(0, len(sentences_))]
+            if X is None:
+                X = sentences_
+                y = labels_
+            else:
+                X += sentences_
+                y += labels_
 
         X, max_length = self.tokenize_sentences(X)
         X = self.word_embed_sentences(X, max_length=self.max_length)
@@ -148,17 +154,21 @@ def test():
     from tokenization.crf_tokenizer import CrfTokenizer
     from word_embedding.word2vec_gensim import Word2Vec
     word2vec_model = Word2Vec.load('../models/pretrained_word2vec.bin')
+    # Please give the correct paths
     tokenizer = CrfTokenizer(config_root_path='/Users/admin/Desktop/Projects/python/NLP/hactcore/hactcore/nlp/tokenization/',
                              model_path='../models/pretrained_tokenizer.crfsuite')
     # keras_text_classifier = KerasTextClassifier(tokenizer=tokenizer, word2vec=word2vec_model.wv,
     keras_text_classifier = BiDirectionalLSTMClassifier(tokenizer=tokenizer, word2vec=word2vec_model.wv,
                                                         model_path='../models/sentiment_model.h5',
                                                         max_length=20)
-    X, y = keras_text_classifier.load_data('../data/sentiment/samples/positive.txt',
-                                           '../data/sentiment/samples/negative.txt')
+    X, y = keras_text_classifier.load_data(['../data/sentiment/samples/positive.txt',
+                                           '../data/sentiment/samples/negative.txt'],
+                                           load_method=keras_text_classifier.load_data_from_file)
 
     keras_text_classifier.train(X, y)
-    labels = keras_text_classifier.classify(['Dở thế', 'Hay thế', 'Nghe như đấm vào tai'])
+    label_dict = {0: 'tích cực', 1: 'tiêu cực'}
+    test_sentences = ['Dở thế', 'Hay thế', 'Nghe như đấm vào tai']
+    labels = keras_text_classifier.classify(test_sentences, label_dict=label_dict)
     print(labels)
 
 if __name__ == '__main__':
