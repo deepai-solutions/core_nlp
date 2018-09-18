@@ -1,0 +1,4 @@
+tệ,nhảm,dở,nhảm_nhí
+xuất_sắc,hay,tốt,hay_tuyệt
+chán,nhạt,buồn_ngủ
+không,chả
