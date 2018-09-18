@@ -24,6 +24,11 @@ class BaseTextClassifier(object):
 
 
 def load_synonym_dict(file_path):
+    """
+    Load synonyms from file and create synonym dictionary
+    :param file_path: path to synonym file
+    :return: synonym dictionary
+    """
     sym_dict = dict()
     with open(file_path, 'r') as fr:
         lines = fr.readlines()
@@ -39,6 +44,17 @@ def load_synonym_dict(file_path):
 class KerasTextClassifier(BaseTextClassifier):
     def __init__(self, tokenizer, word2vec, model_path, max_length=20, n_epochs=15, batch_size=6,
                  n_class=2, sym_dict=None):
+        """
+        Create Text Classifier which based on Keras
+        :param tokenizer: tokenizer to do correct word segmentation
+        :param word2vec: word2vec dictionary, convert word to vector
+        :param model_path: path to save or load model
+        :param max_length: max length of a sentence
+        :param n_epochs: number of epochs
+        :param batch_size: number of samples in each batch
+        :param n_class: number of classes
+        :param sym_dict: synonym dictionary (optional)
+        """
         self.tokenizer = tokenizer
         self.word2vec = word2vec
         self.word_dim = self.word2vec[self.word2vec.index2word[0]].shape[0]
@@ -51,17 +67,34 @@ class KerasTextClassifier(BaseTextClassifier):
         self.sym_dict = sym_dict
 
     def train(self, X, y):
+        """
+        Training with data X, y
+        :param X: 3D features array, number of samples x max length x word dimension
+        :param y: 2D labels array, number of samples x number of class
+        :return:
+        """
         self.model = self.build_model(input_dim=(X.shape[1], X.shape[2]))
         self.model.fit(X, y, batch_size=self.batch_size, epochs=self.n_epochs)
         self.model.save_weights(self.model_path)
 
     def predict(self, X):
+        """
+        Predict for 3D feature array
+        :param X: 3D feature array, converted from string to matrix
+        :return: label array y as 2D-array
+        """
         if self.model is None:
             self.load_model()
         y = self.model.predict(X)
         return y
 
     def classify(self, sentences, label_dict=None):
+        """
+        Classify sentences
+        :param sentences: input sentences in format of list of strings
+        :param label_dict: dictionary of label ids and names
+        :return: label array
+        """
         X = [sent.strip() for sent in sentences]
         X, _ = self.tokenize_sentences(X)
         X = self.word_embed_sentences(X, max_length=self.max_length)
@@ -76,10 +109,19 @@ class KerasTextClassifier(BaseTextClassifier):
         return labels
 
     def load_model(self):
+        """
+        Load model from file
+        :return: None
+        """
         self.model = self.build_model((self.max_length, self.word_dim))
         self.model.load_weights(self.model_path)
 
     def build_model(self, input_dim):
+        """
+        Build model structure
+        :param input_dim: input dimension max_length x word_dim
+        :return: Keras model
+        """
         model = Sequential()
 
         model.add(LSTM(64, return_sequences=True, input_shape=input_dim))
@@ -93,6 +135,12 @@ class KerasTextClassifier(BaseTextClassifier):
         return model
 
     def load_data(self, path_list, load_method):
+        """
+        Load data from list of paths
+        :param path_list: list of paths to files or directories
+        :param load_method: method to load (from file or from directory)
+        :return: 3D-array X and 2D-array y
+        """
         X = None
         y = None
         for i, data_path in enumerate(path_list):
@@ -112,6 +160,12 @@ class KerasTextClassifier(BaseTextClassifier):
         return np.array(X), np.array(y)
 
     def word_embed_sentences(self, sentences, max_length=20):
+        """
+        Helper method to convert word to vector
+        :param sentences: input sentences in list of strings format
+        :param max_length: max length of sentence you want to keep, pad more or cut off
+        :return: embedded sentences as a 3D-array
+        """
         embed_sentences = []
         for sent in sentences:
             embed_sent = []
@@ -133,6 +187,11 @@ class KerasTextClassifier(BaseTextClassifier):
         return embed_sentences
 
     def tokenize_sentences(self, sentences):
+        """
+        Tokenize or word segment sentences
+        :param sentences: input sentences
+        :return: tokenized sentence
+        """
         tokens_list = []
         max_length = -1
         for sent in sentences:
@@ -145,6 +204,11 @@ class KerasTextClassifier(BaseTextClassifier):
 
     @staticmethod
     def load_data_from_file(file_path):
+        """
+        Method to load sentences from file
+        :param file_path: path to file
+        :return: list of sentences
+        """
         with open(file_path, 'r') as fr:
             sentences = fr.readlines()
             sentences = [sent.strip() for sent in sentences if len(sent.strip()) > 0]
@@ -153,6 +217,11 @@ class KerasTextClassifier(BaseTextClassifier):
 
 class BiDirectionalLSTMClassifier(KerasTextClassifier):
     def build_model(self, input_dim):
+        """
+        Overwrite build model using Bidirectional Layer
+        :param input_dim: input dimension
+        :return: Keras model
+        """
         model = Sequential()
 
         model.add(Bidirectional(LSTM(32, return_sequences=True), input_shape=input_dim))
