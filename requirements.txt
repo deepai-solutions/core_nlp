@@ -3,6 +3,7 @@ python-crfsuite==0.9.5
 sklearn-crfsuite==0.3.6  # Optional but recommended as a replacement for bear python-crfsuite
 joblib==0.12.5  # Optional, you can use pickle only
 gensim==3.5.0
+keras==2.2.0
 
 #github links:
 #https://github.com/scrapinghub/python-crfsuite

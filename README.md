@@ -89,7 +89,13 @@ For tokenization modules:
 - sklearn-crfsuite (default with pre-trained model, but optional. Feel free to use python-crfsuite)
 
 For word_embedding vector:
+- tokenization module
 - gensim
+
+For text classification
+- tokenization module
+- word_embedding module
+- keras
 
 FYI:
 sklearn-crfsuite is a wrapper of python-crfsuite. 
