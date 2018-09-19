@@ -76,6 +76,10 @@ Use pre-trained word2vec model
 ```python
 model_path = "models/pretrained_word2vec.bin"
 ```
+Other links for pre-trained word2vec models:
+https://github.com/sonvx/word2vecVN
+https://github.com/Kyubyong/wordvectors
+
 
 ## 3. Text classification
 #### (Run: python demo.py)
@@ -106,9 +110,6 @@ labels = keras_text_classifier.classify(test_sentences, label_dict=label_dict)
 print(labels)  # Output: ['tiêu cực', 'tích cực', 'tiêu cực', 'tiêu cực']
 ```
 
-Other links for pre-trained models:
-https://github.com/sonvx/word2vecVN
-https://github.com/Kyubyong/wordvectors
 
 ## Requirements
 Please check requirments.txt
