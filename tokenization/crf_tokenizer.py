@@ -1,5 +1,5 @@
 import ast
-from base_tokenizer import BaseTokenizer
+from .base_tokenizer import BaseTokenizer
 from .utils import load_n_grams
 import pycrfsuite
 import sklearn_crfsuite
