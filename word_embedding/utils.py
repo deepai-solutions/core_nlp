@@ -5,6 +5,11 @@ __copyright__ = "Copyright 2018, DeepAI-Solutions"
 
 
 def clean_script(html):
+    """
+    Clean html tags, scripts and css code
+    :param html: input html content
+    :return: cleaned text
+    """
     from bs4 import BeautifulSoup
     soup = BeautifulSoup(html)
     for script in soup(["script", "style"]):
@@ -21,6 +26,13 @@ def clean_script(html):
 
 
 def download_html(url_path, output_path, should_clean=True):
+    """
+    Download html content from url
+    :param url_path: input url
+    :param output_path: path to output file
+    :param should_clean: should clean or not
+    :return: cleaned text
+    """
     with urllib.request.urlopen(url_path) as response:
         html = response.read()
         if should_clean:
@@ -33,6 +45,11 @@ def download_html(url_path, output_path, should_clean=True):
 
 
 def clean_html(html):
+    """
+    Clean html tags only
+    :param html: input html content
+    :return: clean text
+    """
     from bs4 import BeautifulSoup
 
     soup = BeautifulSoup(html)
@@ -41,6 +58,14 @@ def clean_html(html):
 
 
 def clean_html_file(input_path, output_path, should_tokenize=False, tokenizer=None):
+    """
+    Clean html tags, script in a file
+    :param input_path: path to input file
+    :param output_path: path to output file
+    :param should_tokenize: should tokenize text or not
+    :param tokenizer: if should_tokenize is True, you have to provide tokenizer
+    :return: None
+    """
     if os.path.exists(output_path):
         raise Exception("Output path existed")
     with open(input_path, 'r') as fr:
@@ -58,6 +83,14 @@ def clean_html_file(input_path, output_path, should_tokenize=False, tokenizer=No
 
 
 def clean_files_from_dir(input_dir, output_dir, should_tokenize=False, tokenizer=None):
+    """
+    Clean html tags scripts for files in a directory
+    :param input_dir: input directory
+    :param output_dir: output directory
+    :param should_tokenize: should tokenize text or not?
+    :param tokenizer: tokenizer (required when should_tokenize is True)
+    :return: None
+    """
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
     input_files = os.listdir(input_dir)
@@ -67,6 +100,9 @@ def clean_files_from_dir(input_dir, output_dir, should_tokenize=False, tokenizer
             continue
         output_file_path = os.path.join(output_dir, input_file)
         clean_html_file(input_file_path, output_file_path, should_tokenize=should_tokenize, tokenizer=tokenizer)
+
+
+"""Tests"""
 
 
 def test_download_html():

@@ -3,6 +3,11 @@ import os
 
 
 def load_n_grams(file_path):
+    """
+    Load n grams from text files
+    :param file_path: input to bi-gram or tri-gram file
+    :return: n-gram words. E.g. bi-gram words or tri-gram words
+    """
     with open(file_path, encoding="utf8") as fr:
         words = fr.read()
         words = ast.literal_eval(words)
@@ -10,6 +15,11 @@ def load_n_grams(file_path):
 
 
 def clean_html(html):
+    """
+    Clean html tags
+    :param html: html text
+    :return: cleaned text
+    """
     from bs4 import BeautifulSoup
 
     soup = BeautifulSoup(html)
@@ -18,6 +28,12 @@ def clean_html(html):
 
 
 def clean_html_file(input_path, output_path):
+    """
+    Clean html tags in file and write to a new file
+    :param input_path: input crawled html file
+    :param output_path: path to write output content
+    :return: None
+    """
     if os.path.exists(output_path):
         raise Exception("Output path existed")
     with open(input_path, 'r') as fr:
@@ -32,6 +48,12 @@ def clean_html_file(input_path, output_path):
 
 
 def clean_files_from_dir(input_dir, output_dir):
+    """
+    Clean html tags for files in a directory
+    :param input_dir: path to directory
+    :param output_dir: path to output director
+    :return: None
+    """
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
     input_files = os.listdir(input_dir)
@@ -41,6 +63,9 @@ def clean_files_from_dir(input_dir, output_dir):
             continue
         output_file_path = os.path.join(output_dir, input_file)
         clean_html_file(input_file_path, output_file_path)
+
+
+"""Tests"""
 
 
 def test_clean_file():

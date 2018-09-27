@@ -235,6 +235,9 @@ class BiDirectionalLSTMClassifier(KerasTextClassifier):
         return model
 
 
+"""Tests"""
+
+
 def test():
     from tokenization.crf_tokenizer import CrfTokenizer
     from word_embedding.word2vec_gensim import Word2Vec

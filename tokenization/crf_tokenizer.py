@@ -59,6 +59,11 @@ def load_data_from_file(data_path):
 
 
 def load_data_from_dir(data_path):
+    """
+    Load data from files in a directory. This function uses load_data_from_file
+    :param data_path: path to directory
+    :return: combined sentences array and label array
+    """
     file_names = os.listdir(data_path)
     sentences = None
     labels = None
@@ -331,6 +336,9 @@ class CrfTokenizer(BaseTokenizer):
             else:
                 complete = complete + ' ' + sent[i]
         return complete
+
+
+"""Tests"""
 
 
 def test_base():

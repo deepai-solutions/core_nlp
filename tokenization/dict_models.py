@@ -55,6 +55,9 @@ class LongMatchingTokenizer(BaseTokenizer):
         return word_list
 
 
+"""Tests"""
+
+
 def test():
     lm_tokenizer = LongMatchingTokenizer()
     tokens = lm_tokenizer.tokenize("Thuế thu nhập cá nhân")
