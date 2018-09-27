@@ -24,9 +24,9 @@ Example 2: Using crf
 from tokenization.crf_tokenizer import CrfTokenizer
 
 crf_tokenizer_obj = CrfTokenizer()
-crf_tokenizer_obj.train('../data/tokenized/samples/training')
+crf_tokenizer_obj.train('data/tokenized/samples/training')
 # Note: If you trained your model, please set correct model path and do not train again!
-# crf_tokenizer_obj = CrfTokenizer(model_path='../models/pretrained_tokenizer.crfsuite')
+# crf_tokenizer_obj = CrfTokenizer(model_path='models/pretrained_tokenizer.crfsuite')
 
 test_sent = "Thuế thu nhập cá nhân"
 tokenized_sent = crf_tokenizer_obj.get_tokenized(test_sent)
