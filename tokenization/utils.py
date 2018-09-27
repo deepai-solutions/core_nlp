@@ -3,7 +3,7 @@ import os
 
 
 def load_n_grams(file_path):
-    with open(file_path) as fr:
+    with open(file_path, encoding="utf8") as fr:
         words = fr.read()
         words = ast.literal_eval(words)
     return words
